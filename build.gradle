@@ -1,0 +1,36 @@
+group = 'com.kotato'
+version = '0.0.1-SNAPSHOT'
+
+buildscript {
+	ext {
+		kotlin_version = "1.1.2"
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+	}
+}
+
+apply plugin: "idea"
+apply plugin: "java"
+apply plugin: "kotlin"
+
+
+repositories {
+	mavenCentral()
+}
+
+compileKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}
+
+dependencies {
+	compile('org.assertj:assertj-core:2.6.0')
+	compile('org.unitils:unitils-core:3.4.2')
+    compile('com.nhaarman:mockito-kotlin-kt1.1:1.5.0')
+}
