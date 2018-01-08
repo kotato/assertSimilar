@@ -16,10 +16,11 @@ buildscript {
 apply plugin: "idea"
 apply plugin: "java"
 apply plugin: "kotlin"
-
+apply plugin: 'maven'
 
 repositories {
 	mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 compileKotlin {
@@ -29,8 +30,16 @@ compileTestKotlin {
 	kotlinOptions.jvmTarget = "1.8"
 }
 
+ext.junitPlatformVersion = '1.0.1'
+ext.junitJupiterVersion  = '5.0.1'
+
 dependencies {
-	compile('org.assertj:assertj-core:2.6.0')
-	compile('org.unitils:unitils-core:3.4.2')
     compile('com.nhaarman:mockito-kotlin-kt1.1:1.5.0')
+    compile('org.assertj:assertj-core:2.6.0')
+    compile('org.unitils:unitils-core:3.4.2')
+    testCompile('com.github.javafaker:javafaker:0.12')
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+    testCompile("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+
 }
