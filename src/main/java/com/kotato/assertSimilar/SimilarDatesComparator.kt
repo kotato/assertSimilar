@@ -53,7 +53,7 @@ internal class SimilarDatesComparator : Comparator {
     }
 
     private fun similarZonedDateTimes(left: ZonedDateTime, right: ZonedDateTime): Boolean {
-        return ChronoUnit.SECONDS.between(left, right) < 2000
+        return abs(ChronoUnit.MILLIS.between(left, right)) < 2000
     }
 
     private fun similarCalendarDates(left: Calendar, right: Calendar): Boolean {

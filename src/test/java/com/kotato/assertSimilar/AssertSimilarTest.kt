@@ -4,6 +4,7 @@ import com.github.javafaker.Faker
 import com.kotato.assertSimilar.MatcherSimilar.assertSimilar
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -84,49 +85,119 @@ class AssertSimilarTest {
     fun `it should compare objects with map and some missing objects`() {
         NinjaMapStub.random().let { value ->
             assertFailsWith<AssertionError> {
-                assertSimilar(value, value.copy(map = value.map))
+                assertSimilar(value, value.copy(map = value.map.toMutableMap().also { it.remove(0) }))
             }
         }
     }
 
     @Test
     fun `it should compare objects with map and some additional objects`() {
+        NinjaMapStub.random().let { value ->
+            assertFailsWith<AssertionError> {
+                assertSimilar(value, value.copy(map = value.map.toMutableMap().also { it.put(3, "potato") }))
+            }
+        }
     }
 
     @Test
-    fun `it should compare objects with Date and more than 2s of difference`() {
-    }
-
-    @Test
-    fun `it should compare objects with Date and less than 2s of difference`() {
+    fun `it should compare objects with Date`() {
+        NinjaDateStub.random().let { assertSimilar(it, it.copy()) }
     }
 
     @Test
     fun `it should compare objects with Date and 2s of difference`() {
+        NinjaDateStub.random().let { value ->
+            assertFailsWith<AssertionError> {
+                assertSimilar(value, value.copy(date = Date(value.date.time + 2000)))
+            }
+        }
+    }
+
+    @Test
+    fun `it should compare objects with Date and more than 2s of difference`() {
+        NinjaDateStub.random().let { value ->
+            assertFailsWith<AssertionError> {
+                assertSimilar(value, value.copy(date = Date(value.date.time + 2001)))
+            }
+        }
+    }
+
+    @Test
+    fun `it should compare objects with Date and less than 2s of difference`() {
+        NinjaDateStub.random().let {
+            assertSimilar(it, it.copy(date = Date(it.date.time + 1999)))
+        }
+    }
+
+    @Test
+    fun `it should compare objects with Calendar`() {
+        NinjaCalendarStub.random().let { assertSimilar(it, it.copy()) }
     }
 
     @Test
     fun `it should compare objects with Calendar and more than 2s of difference`() {
+        NinjaCalendarStub.random().let { value ->
+            assertFailsWith<AssertionError> {
+                Calendar.Builder()
+                        .setInstant(value.calendar.toInstant().plusMillis(2001).toEpochMilli())
+                        .build()
+                        .let { assertSimilar(value, value.copy(calendar = it)) }
+            }
+        }
     }
 
     @Test
     fun `it should compare objects with Calendar and less than 2s of difference`() {
+        NinjaCalendarStub.random().let { value ->
+            Calendar.Builder()
+                    .setInstant(value.calendar.toInstant().plusMillis(1999).toEpochMilli())
+                    .build()
+                    .let { assertSimilar(value, value.copy(calendar = it)) }
+        }
     }
 
     @Test
     fun `it should compare objects with Calendar and 2s of difference`() {
+        NinjaCalendarStub.random().let { value ->
+            assertFailsWith<AssertionError> {
+                Calendar.Builder()
+                        .setInstant(value.calendar.toInstant().plusMillis(2000).toEpochMilli())
+                        .build()
+                        .let { assertSimilar(value, value.copy(calendar = it)) }
+            }
+        }
+    }
+
+    @Test
+    fun `it should compare objects with ZonedDateTime`() {
+        NinjaZonedDateTimeStub.random().let { assertSimilar(it, it.copy()) }
     }
 
     @Test
     fun `it should compare objects with ZonedDateTime and more than 2s of difference`() {
+        NinjaZonedDateTimeStub.random().let { value ->
+            assertFailsWith<AssertionError> {
+                assertSimilar(value,
+                              value.copy(zonedDateTime = value.zonedDateTime.plus(2001, ChronoUnit.MILLIS)))
+            }
+        }
     }
 
     @Test
     fun `it should compare objects with ZonedDateTime and less than 2s of difference`() {
+        NinjaZonedDateTimeStub.random().let {
+            assertSimilar(it, it.copy(zonedDateTime = it.zonedDateTime.plus(1999, ChronoUnit.MILLIS)))
+        }
     }
 
     @Test
     fun `it should compare objects with ZonedDateTime and 2s of difference`() {
+        NinjaZonedDateTimeStub.random().let { value ->
+            assertFailsWith<AssertionError> {
+                assertSimilar(value,
+                              value.copy(zonedDateTime = value.zonedDateTime.plus(2000, ChronoUnit.MILLIS)))
+            }
+        }
     }
 
     private data class Potato(val int: Int)
@@ -134,9 +205,8 @@ class AssertSimilarTest {
     private data class NinjaArray(val potato: Potato, val array: Array<String>)
     private data class NinjaMap(val potato: Potato, val map: Map<Int, String>)
     private data class NinjaDate(val potato: Potato, val date: Date)
-    private data class NinjaCalendar(val potato: Potato, val date: Calendar)
-    private data class NinjaZonedDateTime(val potato: Potato, val date: ZonedDateTime)
-    private data class NinjaPotatoe(val potatoList: NinjaList, val ninjaArray: NinjaArray, val ninjaMap: NinjaMap)
+    private data class NinjaCalendar(val potato: Potato, val calendar: Calendar)
+    private data class NinjaZonedDateTime(val potato: Potato, val zonedDateTime: ZonedDateTime)
     private object FakerInstance {
         private val instance = Faker()
         operator fun invoke() = instance
@@ -159,8 +229,8 @@ class AssertSimilarTest {
 
     private object NinjaMapStub {
         fun random(potato: Potato = PotatoStub.random(),
-                   map: Map<Int, String> = (0..2).map { it to FakerInstance().cat().name() }.toMap()) = NinjaMap(potato,
-                                                                                                                 map)
+                   map: Map<Int, String> = (0..2).map { it to FakerInstance().cat().name() }.toMap()) =
+                NinjaMap(potato, map)
     }
 
     private object NinjaDateStub {
@@ -176,13 +246,6 @@ class AssertSimilarTest {
     private object NinjaZonedDateTimeStub {
         fun random(potato: Potato = PotatoStub.random(),
                    zonedDateTime: ZonedDateTime = ZonedDateTime.now()) = NinjaZonedDateTime(potato, zonedDateTime)
-    }
-
-    private object NinjaPotatoeStub {
-        fun random(list: NinjaList = NinjaListStub.random(),
-                   array: NinjaArray = NinjaArrayStub.random(),
-                   map: NinjaMap = NinjaMapStub.random()) =
-                NinjaPotatoe(NinjaListStub.random(), NinjaArrayStub.random(), NinjaMapStub.random())
     }
 
 }
