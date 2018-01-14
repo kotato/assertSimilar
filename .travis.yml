@@ -17,7 +17,6 @@ cache:
 
 before_install:
   - jdk_switcher use oraclejdk8
-  - sudo apt-get install -y postfix
 
 script:
   - ./gradlew check
